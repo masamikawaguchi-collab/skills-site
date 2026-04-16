@@ -1,42 +1,53 @@
 import Link from "next/link";
-import type { DocumentSkill } from "@/lib/document-skills-data";
-import { documentSkills, documentSkillsCategory } from "@/lib/document-skills-data";
+import type { Skill } from "@/lib/skills-content";
+import type { CategoryMeta } from "@/lib/categories-content";
 import { SiteFrame } from "@/components/site-frame";
+import { CategoryIcon } from "@/components/visuals";
+import { InstallButton } from "@/components/install-button";
 
-function DownloadIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="download-icon">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <path d="m7 10 5 5 5-5" />
-      <path d="M12 15V3" />
-    </svg>
-  );
-}
+const HIDDEN_SECTION_IDS = new Set(["overview", "quick-start", "libraries"]);
 
-export function DocumentCategoryPage() {
+type CategoryPageProps = {
+  meta: CategoryMeta;
+  skills: Skill[];
+};
+
+export function CategoryPage({ meta, skills }: CategoryPageProps) {
   return (
     <SiteFrame>
-      <div className="container page-wrap">
+      <div
+        className="container page-wrap"
+        style={
+          {
+            "--category-accent": meta.accent,
+            "--category-accent-soft": meta.accentSoft,
+          } as React.CSSProperties
+        }
+      >
         <div className="detail-breadcrumbs">
           <Link href="/">Skills ライブラリ</Link>
           <span>/</span>
-          <span>{documentSkillsCategory.title}</span>
+          <span>{meta.title}</span>
         </div>
 
         <section className="category-hero">
           <div className="category-hero-copy">
-            <h1>{documentSkillsCategory.title}</h1>
-            <p>{documentSkillsCategory.description}</p>
+            <span className="category-hero-icon" aria-hidden="true">
+              <CategoryIcon slug={meta.slug} color={meta.accent} size={28} />
+            </span>
+            <h1>{meta.title}</h1>
+            <p>{meta.description}</p>
+            {meta.note ? <div className="author-note">{meta.note}</div> : null}
           </div>
 
           <div className="category-hero-meta">
             <div className="meta-card">
-              <strong>{documentSkills.length}</strong>
-              <span>ローカル移行済みスキル</span>
+              <strong>{skills.length}</strong>
+              <span>掲載スキル</span>
             </div>
             <div className="meta-card">
-              <strong>独自構成</strong>
-              <span>元サイトを踏まえて再編集</span>
+              <strong>日本語版</strong>
+              <span>内容を独自に再構成</span>
             </div>
           </div>
         </section>
@@ -44,80 +55,85 @@ export function DocumentCategoryPage() {
         <section className="detail-section-block">
           <div className="section-heading-block">
             <h2>スキル一覧</h2>
-            <p>ドキュメントカテゴリだけ先にローカル化し、一覧から詳細まで内部遷移できるようにしています。</p>
+            <p>カードをクリックすると詳細ページに進み、具体例と導入手順を確認できます。</p>
           </div>
 
-          <div className="skills-grid">
-            {documentSkills.map((skill) => (
-              <Link key={skill.localHref} href={skill.localHref} className="skill-card">
-                <div className="skill-card-body">
-                  <div className="skill-card-header">
-                    <div className="skill-title">{skill.title}</div>
-                    <span className="download-button" aria-hidden="true">
-                      <DownloadIcon />
+          {skills.length === 0 ? (
+            <p>このカテゴリにはまだスキルが登録されていません。</p>
+          ) : (
+            <div className="skills-grid">
+              {skills.map((skill) => (
+                <Link key={skill.localHref} href={skill.localHref} className="skill-card">
+                  <div className="skill-card-body">
+                    <span className="skill-card-icon" aria-hidden="true">
+                      <CategoryIcon slug={meta.slug} color={meta.accent} size={18} />
                     </span>
+                    <div className="skill-title">{skill.title}</div>
+                    <div className="skill-author">提供元: {skill.authorLabel}</div>
+                    <p className="skill-description no-clamp">{skill.summary}</p>
                   </div>
-                  <div className="skill-author">提供元: {skill.author}</div>
-                  <p className="skill-description no-clamp">{skill.summary}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </SiteFrame>
   );
 }
 
-export function DocumentSkillDetailPage({ skill }: { skill: DocumentSkill }) {
+type SkillDetailPageProps = {
+  skill: Skill;
+  categoryHref: string;
+  accent: string;
+  accentSoft: string;
+};
+
+export function SkillDetailPage({ skill, categoryHref, accent, accentSoft }: SkillDetailPageProps) {
+  const visibleSections = skill.sections.filter(
+    (section) => !HIDDEN_SECTION_IDS.has(section.id),
+  );
+
   return (
     <SiteFrame>
-      <div className="container page-wrap detail-page-wrap">
+      <div
+        className="container page-wrap detail-page-wrap"
+        style={
+          {
+            "--category-accent": accent,
+            "--category-accent-soft": accentSoft,
+            "--mockup-accent": accent,
+            "--mockup-accent-soft": accentSoft,
+            "--mockup-fill": accentSoft,
+            "--mockup-border": accent,
+          } as React.CSSProperties
+        }
+      >
         <div className="detail-breadcrumbs">
           <Link href="/">Skills ライブラリ</Link>
           <span>/</span>
-          <Link href={documentSkillsCategory.localHref}>{documentSkillsCategory.title}</Link>
+          <Link href={categoryHref}>{skill.categoryTitle}</Link>
           <span>/</span>
           <span>{skill.title}</span>
         </div>
 
         <section className="skill-detail-hero">
           <div className="skill-detail-main">
-            <div className="detail-label">Skills ライブラリ</div>
+            <div className="detail-label">
+              <CategoryIcon slug={skill.categorySlug} color={accent} size={16} />
+              <span>{skill.categoryTitle}</span>
+            </div>
             <h1>{skill.title}</h1>
-            <div className="detail-author">作成者: {skill.author}</div>
+            <div className="detail-author">作成者: {skill.authorLabel}</div>
+            <p className="detail-intro">{skill.intro}</p>
             <p className="detail-summary">{skill.description}</p>
-
-            <div className="install-card">
-              <span className="install-label">導入コマンド</span>
-              <code>{skill.installCommand}</code>
-            </div>
-
-            <div className="detail-actions">
-              <a href={skill.githubUrl} target="_blank" rel="noopener noreferrer" className="outline-action">
-                GitHub
-              </a>
-              <Link href={documentSkillsCategory.localHref} className="outline-action">
-                カテゴリへ戻る
-              </Link>
-            </div>
+            <InstallButton githubUrl={skill.githubUrl} />
           </div>
-
-          <aside className="toc-card">
-            <span className="toc-title">ページ内目次</span>
-            <nav className="toc-links">
-              {skill.sections.map((section) => (
-                <a key={section.id} href={`#${section.id}`}>
-                  {section.title}
-                </a>
-              ))}
-            </nav>
-          </aside>
         </section>
 
         <div className="detail-layout">
           <article className="detail-content">
-            {skill.sections.map((section) => (
+            {visibleSections.map((section) => (
               <section key={section.id} id={section.id} className="detail-section-block">
                 <h2>{section.title}</h2>
 
@@ -175,7 +191,7 @@ export function DocumentSkillDetailPage({ skill }: { skill: DocumentSkill }) {
             </div>
             <div className="sidebar-card">
               <span className="sidebar-card-title">このページの方針</span>
-              <p>元サイトの情報構造を参考にしつつ、ローカル向けに日本語で再編集しています。</p>
+              <p>元サイトの情報構造を参考にしつつ、ローカル版は日本語で独自に再編集しています。</p>
             </div>
           </aside>
         </div>

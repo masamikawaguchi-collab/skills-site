@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DocumentSkillDetailPage } from "@/components/document-pages";
-import { documentSkills, getDocumentSkill } from "@/lib/document-skills-data";
+import { SkillDetailPage } from "@/components/skill-pages";
+import { allSkills, getSkill } from "@/lib/skills-content";
+import { getCategoryMeta } from "@/lib/categories-content";
 
 type PageProps = {
   params: Promise<{
@@ -11,7 +12,7 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  return documentSkills.map((entry) => ({
+  return allSkills.map((entry) => ({
     author: entry.author,
     skill: entry.skill,
   }));
@@ -19,7 +20,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolved = await params;
-  const skill = getDocumentSkill(resolved.author, resolved.skill);
+  const skill = getSkill(resolved.author, resolved.skill);
 
   if (!skill) {
     return {
@@ -35,11 +36,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function Page({ params }: PageProps) {
   const resolved = await params;
-  const skill = getDocumentSkill(resolved.author, resolved.skill);
+  const skill = getSkill(resolved.author, resolved.skill);
 
   if (!skill) {
     notFound();
   }
 
-  return <DocumentSkillDetailPage skill={skill} />;
+  const category = getCategoryMeta(skill.categorySlug);
+
+  return (
+    <SkillDetailPage
+      skill={skill}
+      categoryHref={`/agent-skills/category/${skill.categorySlug}`}
+      accent={category?.accent ?? "#2563eb"}
+      accentSoft={category?.accentSoft ?? "#dbeafe"}
+    />
+  );
 }

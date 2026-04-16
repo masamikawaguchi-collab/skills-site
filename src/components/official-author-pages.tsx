@@ -1,16 +1,7 @@
 import Link from "next/link";
 import type { OfficialAuthor } from "@/lib/official-authors-data";
 import { SiteFrame } from "@/components/site-frame";
-
-function DownloadIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="download-icon">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <path d="m7 10 5 5 5-5" />
-      <path d="M12 15V3" />
-    </svg>
-  );
-}
+import { BrandMark } from "@/components/visuals";
 
 export function OfficialAuthorPage({ author }: { author: OfficialAuthor }) {
   return (
@@ -26,7 +17,7 @@ export function OfficialAuthorPage({ author }: { author: OfficialAuthor }) {
 
         <section className="author-hero">
           <div className="author-hero-badge" aria-hidden="true">
-            {author.letter}
+            <BrandMark brandKey={author.brandKey} size={52} />
           </div>
 
           <div className="author-hero-copy">
@@ -38,7 +29,7 @@ export function OfficialAuthorPage({ author }: { author: OfficialAuthor }) {
           <div className="author-hero-meta">
             <div className="meta-card">
               <strong>{author.count}</strong>
-              <span>公開スキル数</span>
+              <span>掲載スキル</span>
             </div>
             <div className="meta-card">
               <strong>ローカル版</strong>
@@ -50,30 +41,43 @@ export function OfficialAuthorPage({ author }: { author: OfficialAuthor }) {
         <section className="detail-section-block">
           <div className="section-heading-block">
             <h2>{author.name} のスキル一覧</h2>
-            <p>元サイトの author ページ構成を参考にしつつ、ローカル版では読みやすさ優先で代表スキルをまとめています。</p>
+            <p>よく利用される代表スキルのみを掲載しています。</p>
           </div>
 
           <div className="skills-grid">
-            {author.skills.map((skill) => (
-              <a
-                key={`${author.slug}-${skill.title}`}
-                href={skill.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="skill-card"
-              >
+            {author.skills.map((skill) => {
+              const isLocal = skill.href.startsWith("/");
+              const body = (
                 <div className="skill-card-body">
-                  <div className="skill-card-header">
-                    <div className="skill-title">{skill.title}</div>
-                    <span className="download-button" aria-hidden="true">
-                      <DownloadIcon />
-                    </span>
-                  </div>
+                  <span className="skill-card-icon is-brand" aria-hidden="true">
+                    <BrandMark brandKey={author.brandKey} size={22} />
+                  </span>
+                  <div className="skill-title">{skill.title}</div>
                   <div className="skill-author">提供元: {author.name}</div>
                   <p className="skill-description no-clamp">{skill.description}</p>
                 </div>
-              </a>
-            ))}
+              );
+
+              return isLocal ? (
+                <Link
+                  key={`${author.slug}-${skill.title}`}
+                  href={skill.href}
+                  className="skill-card"
+                >
+                  {body}
+                </Link>
+              ) : (
+                <a
+                  key={`${author.slug}-${skill.title}`}
+                  href={skill.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="skill-card"
+                >
+                  {body}
+                </a>
+              );
+            })}
           </div>
         </section>
       </div>
